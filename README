@@ -1,0 +1,75 @@
+About
+----------------------------------------------------------------------
+ascompare compares the connectivity of networks.  It uses publicly
+available academic datasets to construct an AS graph and then applies
+some simple graph algorithms to compute what percentage of ASes on the
+Internet and what percentage of public /24s are reachable within x
+AS-hops of a given set of networks.  In ascompare, a "network" is a
+set of ASes that are logically grouped together, e.g., all ASes
+belonging to a company.  Running ascompare with several networks
+performs the same computations on each and generates a report that
+compares them all.
+
+Compiling
+----------------------------------------------------------------------
+ascompare requires Boost (www.boost.org).  just run "make" to compile.
+
+Running
+----------------------------------------------------------------------
+ascompare requires two input files:
+* an edge file that contains links between ASes
+* an AS description file with some details about each AS
+
+each line of the edge file has the format:
+  FROM-ASN TO-ASN HOPS
+where FROM-ASN and TO-ASN are ASNs and HOPS is the number of hops
+between the two ASes.  usually HOPS is 1, but occasionally some
+datasets find routes between two ASes that are longer because the ASes
+of intermediate routers cannot be determined (c.f. CAIDA aslinks).
+
+each line of the AS description file has the format:
+  ASN NAME CONE24 CONEPREF CONEAS
+where NAME is a description with _no_ spaces, CONE24 is the number of
+/24s in the AS's customer cone, CONEPREF is the number of prefixes in
+the customer cone, and CONEAS is the number of ASes in the customer
+cone.  generally you should use CAIDA's as-info data.
+
+Get datasets from the sources below, then convert them into the proper
+format:
+* CAIDA as-info: asinfo2aslist.pl [input] > as.dat
+* CAIDA aslinks: aslinks2edge.pl [input] > edges.dat
+* UCLA links: links2edge.pl [input] > edges.dat
+* CAIDA as-rel:  links2edge.pl [input] > edges.dat
+
+Run ascompare like:
+  ascompare edges.dat as.dat LABEL:asn1,asn2,... LABEL:asn1,asn2,...
+
+Each LABEL:asn1,asn2,... group specifies a single "network", since
+often a company or other entity owns multiple ASes.  For example,
+Level3 would be:
+  Level3:3356,11213,594,21233
+(at least, according to the CAIDA data as of July 2008).
+
+If you want to generate an HTML report with some graphs, pipe the
+output of ascompare to makereport.pl.  Pass one argument to
+makereport.pl, a prefix for all output files.  For example:
+  ascompare caida-edges.dat as.dat ... | makereport.pl output/caida
+will result in a report at output/caida.html.  (All related images
+will be called output/caida-[imgname].png.)
+
+Datasets
+----------------------------------------------------------------------
+CAIDA data:
+as-rel (inferred peering relationships): http://as-rank.caida.org/data/2008/
+as-info: http://as-rank.caida.org/
+         (relationship based, prune, all avail, treat individually, ascii)
+aslinks: http://data.caida.org/datasets/topology/ipv4.allpref24-aslinks/team-1/2008/
+         http://www.caida.org/data/active/ipv4_routed_topology_aslinks_dataset.xml
+
+UCLA links data:
+http://irl.cs.ucla.edu/topology/data/
+http://irl.cs.ucla.edu/topology/
+
+Authors
+----------------------------------------------------------------------
+Kris Beevers <kbeevers@voxel.net>
